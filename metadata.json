@@ -1,0 +1,8 @@
+{
+  "name": "Copy of Copy of Gemini Capabilities Suite",
+  "description": "A comprehensive showcase of multimodal AI capabilities using the Gemini 2.5 API, featuring text reasoning, computer vision, image generation, and grounded search.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
