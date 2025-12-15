@@ -1,0 +1,70 @@
+name: Docker Compose Deployment
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Deploy with Docker Compose
+    runs-on: self-hosted   # your runner already has Docker
+
+    steps:
+      # ---------------------------
+      # 1️⃣ Checkout source code
+      # ---------------------------
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ---------------------------
+      # 2️⃣ Verify Docker environment
+      # ---------------------------
+      - name: Verify Docker & Compose
+        run: |
+          docker --version
+          docker compose version
+
+      # ---------------------------
+      # 3️⃣ Create .env securely
+      # ---------------------------
+      - name: Create environment file
+        run: |
+          echo "GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}" > .env
+          chmod 600 .env
+
+      # ---------------------------
+      # 4️⃣ Stop existing containers
+      # ---------------------------
+      - name: Stop existing containers
+        run: |
+          docker compose down || true
+
+      # ---------------------------
+      # 5️⃣ Build Docker images
+      # ---------------------------
+      - name: Build Docker images
+        run: |
+          docker compose build
+
+      # ---------------------------
+      # 6️⃣ Deploy application
+      # ---------------------------
+      - name: Deploy application
+        run: |
+          docker compose up -d
+
+      # ---------------------------
+      # 7️⃣ Health checks
+      # ---------------------------
+      - name: Backend health check
+        run: |
+          sleep 10
+          curl -f http://localhost:3000 || exit 1
+
+      - name: Frontend health check
+        run: |
+          curl -f http://localhost:3001 || exit 1
