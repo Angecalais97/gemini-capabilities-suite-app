@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
-import { GlobeIcon, LoaderIcon, SendIcon } from './Icons';
-import { searchWeb } from '../services/geminiService';
+import { useState } from "react";
+import { GlobeIcon, LoaderIcon, SendIcon } from "./Icons";
+import { search } from "../services/geminiService";
 
-export const SearchGroundingView: React.FC = () => {
-  const [query, setQuery] = useState('');
-  const [result, setResult] = useState<{ text: string, sources: Array<{ title: string, uri: string }> } | null>(null);
+export const SearchGroundingView = () => {
+  const [query, setQuery] = useState("");
+  const [result, setResult] = useState<{
+    text: string;
+    sources: Array<{ title: string; uri: string }>;
+  } | null>(null);
   const [loading, setLoading] = useState(false);
 
   const handleSearch = async (e: React.FormEvent) => {
@@ -13,11 +16,16 @@ export const SearchGroundingView: React.FC = () => {
 
     setLoading(true);
     setResult(null);
+
     try {
-      const data = await searchWeb(query);
+      const data = await search(query);
       setResult(data);
-    } catch (err) {
-      console.error(err);
+    } catch (error) {
+      console.error(error);
+      setResult({
+        text: "Failed to perform search.",
+        sources: [],
+      });
     } finally {
       setLoading(false);
     }
@@ -31,7 +39,10 @@ export const SearchGroundingView: React.FC = () => {
             <GlobeIcon className="w-6 h-6 text-emerald-400" />
             Search Grounding
           </h2>
-          <p className="text-slate-400">Ask questions about current events or topics requiring real-time web data.</p>
+          <p className="text-slate-400">
+            Ask questions about current events or topics requiring real-time web
+            data.
+          </p>
         </div>
 
         <form onSubmit={handleSearch} className="relative">
@@ -47,7 +58,11 @@ export const SearchGroundingView: React.FC = () => {
             disabled={loading || !query.trim()}
             className="absolute right-2 top-2 bottom-2 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white w-10 h-10 rounded-full flex items-center justify-center transition-colors"
           >
-            {loading ? <LoaderIcon className="w-5 h-5" /> : <SendIcon className="w-5 h-5" />}
+            {loading ? (
+              <LoaderIcon className="w-5 h-5" />
+            ) : (
+              <SendIcon className="w-5 h-5" />
+            )}
           </button>
         </form>
 
@@ -62,13 +77,19 @@ export const SearchGroundingView: React.FC = () => {
         {result && (
           <div className="space-y-6">
             <div className="bg-slate-800/50 rounded-2xl p-6 border border-slate-700">
-               <h3 className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">Answer</h3>
-               <p className="text-slate-100 text-lg leading-relaxed">{result.text}</p>
+              <h3 className="text-emerald-400 text-xs font-bold uppercase tracking-wider mb-3">
+                Answer
+              </h3>
+              <p className="text-slate-100 text-lg leading-relaxed">
+                {result.text}
+              </p>
             </div>
 
             {result.sources.length > 0 && (
               <div>
-                <h3 className="text-slate-400 text-sm font-semibold mb-3">Sources</h3>
+                <h3 className="text-slate-400 text-sm font-semibold mb-3">
+                  Sources
+                </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                   {result.sources.map((source, idx) => (
                     <a
@@ -82,8 +103,12 @@ export const SearchGroundingView: React.FC = () => {
                         <GlobeIcon className="w-4 h-4 text-emerald-400" />
                       </div>
                       <div className="min-w-0">
-                        <p className="text-slate-200 text-sm font-medium truncate">{source.title}</p>
-                        <p className="text-slate-500 text-xs truncate">{source.uri}</p>
+                        <p className="text-slate-200 text-sm font-medium truncate">
+                          {source.title}
+                        </p>
+                        <p className="text-slate-500 text-xs truncate">
+                          {source.uri}
+                        </p>
                       </div>
                     </a>
                   ))}

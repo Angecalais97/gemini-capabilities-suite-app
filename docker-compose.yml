@@ -1,0 +1,17 @@
+
+services:
+  backend:
+    build: ./backend
+    container_name: gemini-backend
+    environment:
+      GEMINI_API_KEY: ${GEMINI_API_KEY}
+    ports:
+      - "3000:3000"
+
+  frontend:
+    build: ./frontend
+    container_name: gemini-frontend
+    ports:
+      - "3001:80"
+    depends_on:
+      - backend

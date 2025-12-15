@@ -1,23 +1,24 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { SendIcon, LoaderIcon } from './Icons';
-import { sendChatMessage } from '../services/geminiService';
-import { Message } from '../types';
+import { useState, useRef, useEffect } from "react";
+import { SendIcon, LoaderIcon } from "./Icons";
+import { chat } from "../services/geminiService";
+import type { Message } from "../types";
 
-export const ChatView: React.FC = () => {
-  const [input, setInput] = useState('');
+export const ChatView = () => {
+  const [input, setInput] = useState("");
   const [messages, setMessages] = useState<Message[]>([
     {
-      id: 'welcome',
-      role: 'model',
-      content: "Hello! I am powered by Gemini 2.5 Flash. I can help you with writing, reasoning, coding, and more. How can I assist you today?",
-      timestamp: Date.now()
-    }
+      id: "welcome",
+      role: "model",
+      content:
+        "Hello! I am powered by Gemini 2.5 Flash. I can help you with writing, reasoning, coding, and more. How can I assist you today?",
+      timestamp: Date.now(),
+    },
   ]);
   const [loading, setLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
   useEffect(() => {
@@ -28,28 +29,39 @@ export const ChatView: React.FC = () => {
     e.preventDefault();
     if (!input.trim() || loading) return;
 
-    const userMsg: Message = {
-      id: Date.now().toString(),
-      role: 'user',
+    const userMessage: Message = {
+      id: crypto.randomUUID(),
+      role: "user",
       content: input,
-      timestamp: Date.now()
+      timestamp: Date.now(),
     };
 
-    setMessages(prev => [...prev, userMsg]);
-    setInput('');
+    setMessages((prev) => [...prev, userMessage]);
+    setInput("");
     setLoading(true);
 
     try {
-      const responseText = await sendChatMessage(input, []); // Passing empty history for this simple demo
-      const modelMsg: Message = {
-        id: (Date.now() + 1).toString(),
-        role: 'model',
-        content: responseText,
-        timestamp: Date.now()
+      const { text } = await chat(input);
+
+      const modelMessage: Message = {
+        id: crypto.randomUUID(),
+        role: "model",
+        content: text,
+        timestamp: Date.now(),
       };
-      setMessages(prev => [...prev, modelMsg]);
-    } catch (err) {
-      console.error(err);
+
+      setMessages((prev) => [...prev, modelMessage]);
+    } catch (error) {
+      console.error(error);
+      setMessages((prev) => [
+        ...prev,
+        {
+          id: crypto.randomUUID(),
+          role: "model",
+          content: "Sorry, something went wrong.",
+          timestamp: Date.now(),
+        },
+      ]);
     } finally {
       setLoading(false);
     }
@@ -62,19 +74,22 @@ export const ChatView: React.FC = () => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex ${
+              msg.role === "user" ? "justify-end" : "justify-start"
+            }`}
           >
             <div
               className={`max-w-[85%] rounded-2xl px-5 py-3 text-sm md:text-base leading-relaxed ${
-                msg.role === 'user'
-                  ? 'bg-blue-600 text-white rounded-br-none'
-                  : 'bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700'
+                msg.role === "user"
+                  ? "bg-blue-600 text-white rounded-br-none"
+                  : "bg-slate-800 text-slate-100 rounded-bl-none border border-slate-700"
               }`}
             >
               {msg.content}
             </div>
           </div>
         ))}
+
         {loading && (
           <div className="flex justify-start">
             <div className="bg-slate-800 rounded-2xl px-5 py-3 rounded-bl-none border border-slate-700 flex items-center gap-2">
@@ -83,6 +98,7 @@ export const ChatView: React.FC = () => {
             </div>
           </div>
         )}
+
         <div ref={messagesEndRef} />
       </div>
 
